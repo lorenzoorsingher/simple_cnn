@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch import nn
 from torch.optim import SGD
 import numpy as np
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print("[INFO] training using {}...".format(DEVICE))
 
@@ -19,9 +20,10 @@ cnn = CLSF2().to(DEVICE)
 
 model_parameters = filter(lambda p: p.requires_grad, cnn.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
-breakpoint()
+print(params, " total params")
 print(cnn)
 
+EPOCH = 100
 BATCH_SIZE = 64
 LR = 1e-2
 
@@ -31,20 +33,32 @@ mnist_testset = datasets.MNIST(root='./data', train=False, download=True, transf
 data_loader = DataLoader(dataset=mnist_trainset,batch_size=BATCH_SIZE,shuffle=True)
 
 opt = SGD(cnn.parameters(), lr=LR)
-lossFunc = nn.BCEWithLogitsLoss(reduction="mean", pos_weight=torch.tensor([11]))
+lossFunc = nn.CrossEntropyLoss()
 
 cnn.train()
-for batch_id, (data,label) in enumerate(data_loader):
+for i in range(EPOCH):
+    print("EPOCH n",i,"\n")
 
-    (data,label) = (data.to(DEVICE), label.to(DEVICE))
+    epochLoss = 0
+    batchItems = 0
+    stop = True
+    for batch_id, (data,label) in enumerate(data_loader):
+
+        (data,label) = (data.to(DEVICE), label.to(DEVICE))
+        
+        predictions = cnn(data)
+        #print(predictions)
+        loss = lossFunc(predictions, label)
+        #breakpoint()
+        # zero the gradients accumulated from the previous steps,
+        # perform backpropagation, and update model parameters
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+        if stop:
+            breakpoint()
+            stop = False
+        epochLoss += loss.item()
+        batchItems += len(data)
     
-    predictions = cnn(data)
-    breakpoint()
-    #print(predictions)
-    loss = lossFunc(predictions, label)
-    
-    # zero the gradients accumulated from the previous steps,
-    # perform backpropagation, and update model parameters
-    opt.zero_grad()
-    loss.backward()
-    opt.step()
+    print("loss: ", epochLoss/batchItems)
