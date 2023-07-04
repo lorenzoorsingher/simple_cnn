@@ -33,7 +33,11 @@ mnist_testset = datasets.MNIST(root='./data', train=False, download=True, transf
 data_loader = DataLoader(dataset=mnist_trainset,batch_size=BATCH_SIZE,shuffle=True)
 
 opt = SGD(cnn.parameters(), lr=LR)
-lossFunc = nn.CrossEntropyLoss()
+lossFunc = nn.NLLLoss()
+
+
+
+
 
 cnn.train()
 for i in range(EPOCH):
@@ -47,11 +51,9 @@ for i in range(EPOCH):
         (data,label) = (data.to(DEVICE), label.to(DEVICE))
         
         predictions = cnn(data)
-        #print(predictions)
+
         loss = lossFunc(predictions, label)
-        #breakpoint()
-        # zero the gradients accumulated from the previous steps,
-        # perform backpropagation, and update model parameters
+        
         opt.zero_grad()
         loss.backward()
         opt.step()
