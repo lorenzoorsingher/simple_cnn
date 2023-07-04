@@ -40,7 +40,9 @@ class CLSF2(nn.Sequential):
             nn.MaxPool2d(2),                
             nn.Flatten(),
             # fully connected layer, output 10 classes
-            nn.Linear(32 * 7 * 7, 10)
+            nn.Linear(32 * 7 * 7, 10),
+            nn.LogSoftmax(dim=1)
+            
         )
 
 
