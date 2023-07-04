@@ -26,6 +26,7 @@ print(cnn)
 EPOCH = 100
 BATCH_SIZE = 64
 LR = 1e-2
+N_CLASSES = 10
 
 transform = transforms.Compose([ transforms.ToTensor()])
 mnist_trainset = datasets.MNIST(root='./data', train=True, download=True,transform=transform)
@@ -36,7 +37,51 @@ opt = SGD(cnn.parameters(), lr=LR)
 lossFunc = nn.NLLLoss()
 
 
+def get_info(predictions, label):
+	
+    mat = np.zeros((N_CLASSES,N_CLASSES), np.uint8)
 
+    for i in range(BATCH_SIZE):
+        mat[torch.argmax(predictions[i]).item()][label[i]] += 1
+
+    for line in mat:
+        print('\t'.join(map(str, line)))
+        print("")
+
+
+    for i in range(N_CLASSES):
+        print("[ANALYZING] Class: ", i)
+        TP = mat[i][i]
+        TN = 0
+        FP = 0
+        FN = 0
+
+        for j in [x for x in range(N_CLASSES) if x != i]:
+            for z in [x for x in range(N_CLASSES) if x != i]:
+                TN += mat[j][z]
+        
+        for j in [x for x in range(N_CLASSES) if x != i]:
+            FP += mat[j][i]
+        
+        for j in [x for x in range(N_CLASSES) if x != i]:
+            FP += mat[i][j]
+
+        prec = TP/(TP+FP)
+        rec = TP/(TP+FN)
+        acc = (TP+TN)/(TP+TN+FP+FN)
+        f1 = (2 * prec*rec)/(prec+rec)
+        print("TP: ", TP,", TN: ", TN,", FP: ", FP,", FN: ", FN)
+        print("prec:\t", round(prec,2))
+        print("rec:\t", round(rec,2))
+        print("acc:\t", round(acc,2))
+        print("F1:\t", round(f1,2))
+
+
+
+
+    breakpoint()
+    # return precision, recall, accuracy
+    return 
 
 
 cnn.train()
@@ -58,7 +103,8 @@ for i in range(EPOCH):
         loss.backward()
         opt.step()
         if stop:
-            breakpoint()
+            get_info(predictions,label)
+            #breakpoint()
             stop = False
         epochLoss += loss.item()
         batchItems += len(data)
