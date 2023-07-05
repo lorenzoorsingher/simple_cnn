@@ -78,12 +78,6 @@ def get_info(predictions, label):
 
 
 
-
-    breakpoint()
-    # return precision, recall, accuracy
-    return 
-
-
 cnn.train()
 for i in range(EPOCH):
     print("EPOCH n",i,"\n")
